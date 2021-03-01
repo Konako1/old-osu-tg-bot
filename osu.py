@@ -1,17 +1,23 @@
 import math
+import operator
+from functools import reduce
+
+import pyttanko as pyttanko
 from dataclasses import dataclass
 from datetime import datetime
 from pprint import pprint
-from typing import Any
+from typing import Any, Iterator
 from asyncio import sleep, create_task
 
 import httpx
 from dateutil import parser
 
 import config
+import pp_calc
 
 API_TOKEN = config.TG_TOKEN
 BASE_URL = 'https://osu.ppy.sh/api/v2'
+p = pyttanko.parser()
 
 
 def api_build_url(fragment: str) -> str:
@@ -53,17 +59,18 @@ class Score:
     combo: str
     mods: str
     rank: str
-    comp_or_pp: str
+    completed: str
     miss: str
     bpm: int
     # position: int
-    user_ranks: int
+    user_rank: int
     star_rating: float
     cover: str
     score_time: str
     map_url: str
     user_url: str
     flag: str
+    pp: str
 
 
 # async def main():
@@ -98,8 +105,14 @@ def get_score_rank(
 
 
 def get_deducted_time(
-        time: list[str]
+        score
 ):
+    score_time = parser.parse(score['created_at'])
+    score_time = score_time.replace(tzinfo=None)
+    date_time_now = datetime.utcnow()
+    time_has_passed = date_time_now - score_time
+    time = str(time_has_passed).split(':')
+
     if time[0] == '0':
         if time[1][0] == '0':
             time[1] = time[1][1]
@@ -122,6 +135,81 @@ def get_deducted_time(
     return time
 
 
+async def get_pp_for_score(
+        osu_file,
+        score,
+        print_status
+) -> tuple[str, str, float]:
+    expanded_beatmap_file = p.map(osu_file)
+    mods_calc = reduce(operator.or_, (getattr(pyttanko, f'MODS_{mod}') for mod in score['mods']),
+                       pyttanko.MODS_NOMOD)
+    stars = pyttanko.diff_calc().calc(expanded_beatmap_file, mods_calc)
+
+    n100 = score['statistics']['count_100']
+    n50 = score['statistics']['count_50']
+    nmiss = score['statistics']['count_miss']
+    objects = score['beatmap']
+
+    objects_count = objects['count_circles'] + objects['count_sliders'] + objects['count_spinners']
+    acc = round(score['accuracy']*100, 2)
+    float_acc = acc
+    fail_acc = pyttanko.acc_round(float_acc, objects_count, score['statistics']['count_miss'])
+
+    pp_for_ss, *_ = pyttanko.ppv2(stars.aim, stars.speed, mods=mods_calc, bmap=expanded_beatmap_file)
+    pp_if_fc, *_ = pyttanko.ppv2(stars.aim, stars.speed, mods=mods_calc, bmap=expanded_beatmap_file,
+                                 n300=fail_acc[0] + nmiss, n100=fail_acc[1], n50=fail_acc[2], nmiss=0)
+    pp_for_play, *_ = pyttanko.ppv2(stars.aim, stars.speed, mods=mods_calc, bmap=expanded_beatmap_file,
+                                    n100=n100, n50=n50, nmiss=nmiss, combo=score['max_combo'])
+
+    score_pp = score['pp']
+    pp_correct = ''
+    if score_pp is not None:
+        pp_correct = f'{round(score_pp, 2)}pp'
+    pp_only = f'{round(pp_for_play, 2)}pp'
+    pp_ss = f'{round(pp_for_ss, 2)}pp if SS'
+    pp_fc = f'{round(pp_if_fc, 2)}pp if FC'
+
+    if score['rank'] == 'F':
+        completed = 'Completed: {notpp}% of the map\n'.format(
+            notpp=round((score['statistics']['count_100']
+                         + score['statistics']['count_300']
+                         + score['statistics']['count_50']
+                         + score['statistics']['count_miss'])
+                        /
+                        (score['beatmap']['count_circles']
+                         + score['beatmap']['count_sliders']
+                         + score['beatmap']['count_spinners']) * 100, 2)
+        )
+        pp = f'{pp_fc} | {pp_ss}'
+    else:
+        completed = ''
+        if print_status == 'Unranked':
+            if score['perfect']:
+                if score['accuracy'] == 1:
+                    pp = pp_only
+                else:
+                    pp = f'{pp_only} | {pp_ss}'
+            else:
+                pp = f'{pp_only} | {pp_fc} | {pp_ss}'
+        elif score_pp is None:
+            if score['perfect']:
+                if score['accuracy'] == 1:
+                    pp = pp_only
+                else:
+                    pp = f'{pp_only} | {pp_ss}'
+            else:
+                pp = f'{pp_only} | {pp_fc} | {pp_ss}'
+        else:
+            if score['perfect']:
+                if score['accuracy'] == 1:
+                    pp = pp_correct
+                else:
+                    pp = f'{pp_correct} | {pp_ss}'
+            else:
+                pp = f'{pp_correct} | {pp_fc} | {pp_ss}'
+    return completed, pp, stars.total
+
+
 class Osu:
     def __init__(self, token: str):
         self._token = token
@@ -141,7 +229,6 @@ class Osu:
         self._token = data['access_token']
         create_task(self.update_token(data['expires_in'] - 60))
 
-    # TODO: updating token
     async def api_request(
             self,
             http_method: str,
@@ -159,6 +246,13 @@ class Osu:
             raise NotImplementedError
         response.raise_for_status()
         return response.json()
+
+    async def get_osu_file(
+            self,
+            map_id: int
+    ) -> Iterator[str]:
+        r = await self._session.get(f"https://osu.ppy.sh/osu/{map_id}")
+        return r.iter_lines()
 
     async def get_user_beatmap_score(
             self,
@@ -231,38 +325,25 @@ class Osu:
             user_id: int,
     ) -> Score:
         user_data = await self.get_user_data(user_id)
-        user_ranks = user_data['rankHistory']['data'][-1]
+        user_rank = user_data['rankHistory']['data'][-1]
         r_score = await self.get_user_score(user_id, 'recent', 1)
         try:
             score = r_score[0]
         except IndexError:
             raise IndexError('User is quit w (no recent scores for past 24 hours)') from None
 
-        score_time = parser.parse(score['created_at'])
-        score_time = score_time.replace(tzinfo=None)
-        date_time_now = datetime.utcnow()
-        time_has_passed = date_time_now - score_time
-        result_time = get_deducted_time(str(time_has_passed).split(':'))
+        result_time = get_deducted_time(score)
 
-        beatmapset = score['beatmapset']
-        beatmap_stat = score['beatmap']
-        status = beatmap_stat['status']
-        user = score['user']
-        stat = score['statistics']
-        cover = beatmapset['covers']['cover']
+        beatmap = await self.get_beatmap(score['beatmap']['id'])
 
-        beatmap = await self.get_beatmap(beatmap_stat['id'])
-
-        # score_on_beatmap = await self.get_user_beatmap_score(beatmap_stat['id'], user_id)
-
-        if status in ('graveyard', 'pending', 'wip'):
+        if score['beatmap']['status'] in ('graveyard', 'pending', 'wip'):
             print_status = 'Unranked'
         else:
-            print_status = status.capitalize()
+            print_status = score['beatmap']['status'].capitalize()
 
         misscount = ''
-        if stat['count_miss'] != 0:
-            misscount = '{miss}xMiss'.format(miss=stat['count_miss'])
+        if score['statistics']['count_miss'] != 0:
+            misscount = f"{score['statistics']['count_miss']}xMiss"
 
         mods = ''.join(score['mods'])
         if mods == '':
@@ -270,29 +351,8 @@ class Osu:
 
         rank, accuracy = get_score_rank(score['rank'], score['accuracy'])
 
-        if score['rank'] == 'F':
-            completed = 'Completed: {notpp}% of the map'.format(
-                notpp=round((stat['count_100']
-                             + stat['count_300']
-                             + stat['count_50']
-                             + stat['count_miss'])
-                            /
-                            (beatmap_stat['count_circles']
-                             + beatmap_stat['count_sliders']
-                             + beatmap_stat['count_spinners']) * 100, 2)
-            )
-        else:
-            pp = score['pp']
-            if print_status == 'Unranked':
-                completed = 'PP: 0'
-            elif pp is None:
-                completed = 'Player have a better score'
-            else:
-                completed = 'PP: {pp}'.format(pp=round(pp, 2))
-
-        # TODO: pp if FC / pp if SS (невозможная залупа)
         if 'DT' in score['mods']:
-            beatmap_stat['bpm'] *= 1.5
+            score['beatmap']['bpm'] *= 1.5
 
         if score['max_combo'] / beatmap['max_combo'] != 1:
             combo = f"{score['max_combo']}/{beatmap['max_combo']}x"
@@ -303,8 +363,9 @@ class Osu:
 
         flag = get_flag(user_data['country']['code'].lower())
 
-        # TODO: mods star rate (еще одна залупа)
+        completed, pp, stars = await get_pp_for_score(await self.get_osu_file(beatmap['id']), score, print_status)
 
+        # score_on_beatmap = await self.get_user_beatmap_score(beatmap['id'], user_id)
         # pprint(user_data)
         # print(user_ranks)
         # pprint(r_score)
@@ -313,27 +374,28 @@ class Osu:
         # pprint(score_on_beatmap)
 
         return Score(
-            player=user['username'],
+            player=score['user']['username'],
             status=print_status,
-            artist=beatmapset['artist'],
-            title=beatmapset['title'],
-            creator=beatmapset['creator'],
-            diff=beatmap_stat['version'],
+            artist=score['beatmapset']['artist'],
+            title=score['beatmapset']['title'],
+            creator=score['beatmapset']['creator'],
+            diff=score['beatmap']['version'],
             acc=accuracy,
             combo=combo,
             mods=mods,
             rank=rank,
-            comp_or_pp=completed,
+            completed=completed,
             miss=misscount,
-            bpm=beatmap_stat['bpm'],
+            bpm=score['beatmap']['bpm'],
             # position=score_on_beatmap['position'],   пока ненужная залупа
-            user_ranks=user_ranks,
-            star_rating=beatmap_stat['difficulty_rating'],
-            cover=cover,
+            user_rank=user_rank,
+            star_rating=round(stars, 2),
+            cover=score['beatmapset']['covers']['cover'],
             score_time=result_time,
             map_url=beatmap['url'],
             user_url=url,
-            flag=flag
+            flag=flag,
+            pp=pp
         )
 
     # TODO: top5 user's best plays
@@ -399,7 +461,7 @@ class Osu:
 
         if user_data['avatar_url'].startswith('/'):
             user_data['avatar_url'] = f"https://osu.ppy.sh{user_data['avatar_url']}"
-        print(user_data['avatar_url'])
+        # print(user_data['avatar_url'])
 
         url = f"https://osu.ppy.sh/users/{user_data['id']}"
 
@@ -422,7 +484,7 @@ class Osu:
             replays_watched=user_data['statistics']['replays_watched_by_others'],
             discord=discord,
             play_count=user_data['statistics']['play_count'],
-            play_time=round(user_data['statistics']['play_time'] / (60*60), 2),
+            play_time=round(user_data['statistics']['play_time'] / (60 * 60), 2),
             join_date=join_date,
             url=url,
         )
@@ -444,8 +506,6 @@ class Osu:
         user_id = response['id']
         return user_id
 
-    # TODO: make a database
-
     # TODO: download song from beatmap (сложная пизда)
 
     # TODO: best user's score on map
@@ -458,7 +518,6 @@ async def request_to_osu() -> Osu:
     osu = Osu('')
     await osu.update_token()
     return osu
-
 
 # if __name__ == '__main__':
 #     run(main())
