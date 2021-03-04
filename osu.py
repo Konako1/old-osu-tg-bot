@@ -1,6 +1,7 @@
 import math
 import operator
 from functools import reduce
+from aiogram.utils.markdown import quote_html
 
 import pyttanko as pyttanko
 from dataclasses import dataclass
@@ -168,6 +169,8 @@ async def get_pp_for_score(
     pp_only = f'{round(pp_for_play, 2)}pp'
     pp_ss = f'{round(pp_for_ss, 2)}pp if SS'
     pp_fc = f'{round(pp_if_fc, 2)}pp if FC'
+
+    # print(pp_only)
 
     if score['rank'] == 'F':
         completed = 'Completed: {notpp}% of the map\n'.format(
@@ -433,9 +436,9 @@ class Osu:
 
         rank, accuracy = get_score_rank(best_score[0]['rank'], best_score[0]['accuracy'])
 
-        highest_pp_play = f'<b>{best_score[0]["beatmapset"]["title"]}</b> by ' \
-                          f'<b>{best_score[0]["beatmapset"]["artist"]} ' \
-                          f'[{best_score[0]["beatmap"]["version"]}]</b>\n' \
+        highest_pp_play = f'<b>{quote_html(best_score[0]["beatmapset"]["title"])}</b> by ' \
+                          f'<b>{quote_html(best_score[0]["beatmapset"]["artist"])} ' \
+                          f'[{quote_html(best_score[0]["beatmap"]["version"])}]</b>\n' \
                           f'<b>{rank} {accuracy}{combo}</b>\n' \
                           f'{{{best_score[0]["statistics"]["count_300"]} / {best_score[0]["statistics"]["count_100"]}' \
                           f' / {best_score[0]["statistics"]["count_50"]} / ' \
