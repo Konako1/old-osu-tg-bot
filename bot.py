@@ -1,13 +1,19 @@
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message, BotCommand
 from aiogram.utils.exceptions import WrongFileIdentifier
+from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
 import emoji
+import random
+import json
 
 import database
+import paste_updater
 from osu import Osu, request_to_osu
 import config
+from paste_updater import PasteUpdater
 
+pastes = PasteUpdater()
 bot = Bot(config.TG_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 dp.middleware.setup(database.OsuDbMiddleware())
@@ -97,7 +103,8 @@ async def recent(message: Message, db: database.OsuDb):
 
     reply_text = emoji.emojize(f"(#{result.user_rank}) {result.flag} <a href='{result.user_url}'>{result.player}'s</a>"
                                f" latest score ({result.score_time}):\n\n"
-                               f'<a href="{result.map_url}">{result.artist} — {result.title} [{result.diff}]</a> '
+                               f'<a href="{result.map_url}">{quote_html(result.artist)} — {quote_html(result.title)} '
+                               f'[{quote_html(result.diff)}]</a> '
                                f'by {result.creator} | {result.star_rating}★ <b>+{result.mods}</b>\n\n'
                                f"{result.combo} {result.miss}\n"
                                f"<b>{result.acc}| {result.rank}</b>\n"
@@ -191,7 +198,25 @@ async def set_osu_nickname(message: Message, db: database.OsuDb):
 @dp.message_handler(chat_id=config.chat_id, text_startswith='!')
 async def message_writer(message: Message):
     args = message.text
-    await bot.send_message(config.group_id, text=args.lstrip('!'))
+    if args.startswith('!say'):
+        await bot.send_message(config.group_id, text=args.lstrip('!say '))
+    if args.startswith('!add'):
+        pastes.add_paste(text=args.lstrip('!add '))
+        await message.reply('ok')
+
+
+@dp.message_handler(chat_id=config.chat_id, commands=['save'])
+async def save(message: Message):
+    pastes.save()
+
+
+@dp.message_handler(chat_id=config.group_id, text_startswith='/')
+async def eblani(message: Message):
+    args = message.text
+    paste_count = len(pastes)
+    if args == '/say':
+        print(paste_count)
+        await bot.send_message(config.group_id, text=pastes.get_random_paste())
 
 
 async def on_startup(_):

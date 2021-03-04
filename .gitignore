@@ -127,3 +127,5 @@ dmypy.json
 osu.db
 config.py
 pp_calc.py
+paste_updater.py
+pastes.json
