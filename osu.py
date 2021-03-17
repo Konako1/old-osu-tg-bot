@@ -14,7 +14,6 @@ import httpx
 from dateutil import parser
 
 import config
-import pp_calc
 
 API_TOKEN = config.TG_TOKEN
 BASE_URL = 'https://osu.ppy.sh/api/v2'
