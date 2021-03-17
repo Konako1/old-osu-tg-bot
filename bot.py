@@ -3,16 +3,17 @@ from aiogram.types import Message, BotCommand
 from aiogram.utils.exceptions import WrongFileIdentifier
 from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
+import simple_math
 import emoji
-import random
-import json
 
 import database
-import paste_updater
 from osu import Osu, request_to_osu
 import config
+from simple_math import Says
 from paste_updater import PasteUpdater
 
+
+says = Says()
 pastes = PasteUpdater()
 bot = Bot(config.TG_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
@@ -28,7 +29,7 @@ async def exceptions(
         if osu_id is None:
             await message.reply('You forgot to write a nickname')
             return
-        result = await osu.user_info(osu_id)
+        await osu.user_info(osu_id)
     except ReadTimeout:
         await message.reply('Bancho is dead')
         return
@@ -49,8 +50,7 @@ async def hints(
         message_hint = 'Юра пидарас'
     if result.user.lower() == 'konako':
         message_hint = 'Помогите, меня держат в заложниках'
-    return  message_hint
-
+    return message_hint
 
 
 async def cache_check(
@@ -89,7 +89,7 @@ async def recent(message: Message, db: database.OsuDb):
 
     try:
         result = await osu.recent(osu_id)
-        print(f'Recent score searched for: {result.player} #{result.user_rank}')
+        await info_reply(f'Recent score searched for: {result.player} #{result.user_rank}')
     except ReadTimeout:
         await message.reply('Bancho is dead')
         return
@@ -135,7 +135,7 @@ async def user_info(message: Message, db: database.OsuDb):
 
     try:
         result = await osu.user_info(osu_id)
-        print(f'Profile searched for: {result.user} #{result.global_rank}')
+        await info_reply(f'Profile searched for: {result.user} #{result.global_rank}')
     except ReadTimeout:
         await message.reply('Bancho is dead')
         return
@@ -192,31 +192,79 @@ async def set_osu_nickname(message: Message, db: database.OsuDb):
     user_id = await osu.get_user_id(args)
     await db.set_user(tg_id, user_id)
     await message.reply('Nickname was remembered')
-    print(f'New remembered nickname: {args}')
+    await info_reply(f'New remembered nickname: {args}')
 
 
-@dp.message_handler(chat_id=config.chat_id, text_startswith='!')
+async def info_reply(text: str):
+    await bot.send_message(config.test_group_id, text=text)
+
+
+@dp.message_handler(chat_id=config.test_group_id, text_startswith='!')
 async def message_writer(message: Message):
     args = message.text
     if args.startswith('!say'):
         await bot.send_message(config.group_id, text=args.lstrip('!say '))
     if args.startswith('!add'):
         pastes.add_paste(text=args.lstrip('!add '))
+        pastes.save()
         await message.reply('ok')
+    if args.startswith('!c'):
+        await info_reply(f"/say было вызвано {says.get_say_count()} раз")
 
 
-@dp.message_handler(chat_id=config.chat_id, commands=['save'])
-async def save(message: Message):
-    pastes.save()
+async def get_time(message: Message, args: list[str]) -> tuple[str, str]:
+    try:
+        args[2]
+    except IndexError:
+        await message.reply('В команде должно присутствовать время и место')
+    if args[1].count(':'):
+        time = args[1]
+        place = args[2]
+    elif args[2].count(':'):
+        time = args[2]
+        place = args[1]
+    else:
+        if args[1].isnumeric():
+            time = args[1]
+            place = args[2]
+        else:
+            if args[1] == 'сейчас':
+                time = 'Сейчас'
+                place = args[2]
+            elif args[2] == 'сейчас':
+                time = 'Сейчас'
+                place = args[1]
+            else:
+                time = args[2]
+                place = args[1]
+        if str(time) != 'Сейчас':
+            if int(time) > 24:
+                time = str(int(time) % 24)
+            if time in ('1', '21'):
+                if time == '1':
+                    time = 'Час'
+                else:
+                    time = f'{time} час'
+            elif int(time) in range(2, 4) or int(time) in range(22, 24):
+                time = f'{time} часа'
+            else:
+                time = f'{time} часов'
+    return time, place
 
 
 @dp.message_handler(chat_id=config.group_id, text_startswith='/')
 async def eblani(message: Message):
     args = message.text
-    paste_count = len(pastes)
     if args == '/say':
-        print(paste_count)
+        says.say_was_sayed()
+        await bot.send_message(config.group_id, text=simple_math.math(message.from_user.id))
+    if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
+    args = message.text.split(' ')
+    if args[0] == '/кто':
+        time, place = await get_time(args=args, message=message)
+        await bot.send_poll(chat_id=config.group_id, question=f'{time}. {place.capitalize()}. Кто.',
+                            options=['Я', 'Не я'], is_anonymous=False)
 
 
 async def on_startup(_):
@@ -235,4 +283,4 @@ async def on_shutdown(_):
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown)
+    executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)
