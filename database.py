@@ -5,7 +5,7 @@ from aiogram.dispatcher.middlewares import BaseMiddleware
 
 
 class OsuDb:
-    def __init__(self, path: str = 'osu.db'):
+    def __init__(self, path: str = 'Desktop/a/Хацкерство/python/osuTest/osu.db'):
         self._conn = aiosqlite.connect(path)
 
     async def connect(self):
