@@ -1,3 +1,5 @@
+import datetime
+
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message, BotCommand
 from aiogram.utils.exceptions import WrongFileIdentifier
@@ -212,34 +214,41 @@ async def message_writer(message: Message):
         await info_reply(f"/say было вызвано {says.get_say_count()} раз")
 
 
-async def get_time(message: Message, args: list[str]) -> tuple[str, str]:
-    try:
-        args[2]
-    except IndexError:
-        await message.reply('В команде должно присутствовать время и место')
-    if args[1].count(':'):
-        time = args[1]
-        place = args[2]
-    elif args[2].count(':'):
-        time = args[2]
-        place = args[1]
-    else:
-        if args[1].isnumeric():
-            time = args[1]
-            place = args[2]
+async def get_time(message: Message, args: str) -> tuple[str, str]:
+    now = ['щас', "сейчас", "now"]
+    if args.lstrip() == '':
+        time = f'{datetime.datetime.now().hour + 1}:00.'
+        place = 'Борщ.'
+        return time, place
+    elif len(args.split(' ')) == 1:
+        if args.split(' ')[0].isalpha() and args.split(' ')[0] not in now:
+            time = ''
+            place = args.split(' ')[0]
+            return time, place + '.'
         else:
-            if args[1] == 'сейчас':
-                time = 'Сейчас'
-                place = args[2]
-            elif args[2] == 'сейчас':
-                time = 'Сейчас'
-                place = args[1]
-            else:
-                time = args[2]
-                place = args[1]
-        if str(time) != 'Сейчас':
+            time = args.split(' ')[0]
+            place = 'Борщ.'
+    elif args.split(' ', maxsplit=1)[0].lower() in now or args.split(' ', maxsplit=1)[0].count(':') or int(args.split(' ', maxsplit=1)[0].isnumeric()):
+        place, time = args.split(' ', maxsplit=1)
+    elif args.rsplit(' ', maxsplit=1)[1].lower() in now or args.rsplit(' ', maxsplit=1)[1].count(':') or int(args.rsplit(' ', maxsplit=1)[1].isnumeric()):
+        place, time = args.rsplit(' ', maxsplit=1)
+    else:
+        await message.reply('Пошел нахуй дебила кусок')
+        raise ValueError
+
+    if str(time) not in now and time != '':
+        if time.count(':'):
+            time_h, time_m = time.split(':')
+            if int(time_h) >= 24:
+                await message.reply('Научись писать время, ебанат')
+                raise ValueError
+            if int(time_m) >= 60:
+                await message.reply('Научись писать время, ебанат')
+                raise ValueError
+        else:
             if int(time) > 24:
-                time = str(int(time) % 24)
+                await message.reply('Научись писать время, ебанат')
+                raise ValueError
             if time in ('1', '21'):
                 if time == '1':
                     time = 'Час'
@@ -249,7 +258,7 @@ async def get_time(message: Message, args: list[str]) -> tuple[str, str]:
                 time = f'{time} часа'
             else:
                 time = f'{time} часов'
-    return time, place
+    return time + '.', place + '.'
 
 
 @dp.message_handler(chat_id=config.group_id, text_startswith='/')
@@ -260,10 +269,10 @@ async def eblani(message: Message):
         await bot.send_message(config.group_id, text=simple_math.math(message.from_user.id))
     if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
-    args = message.text.split(' ')
-    if args[0] == '/кто':
-        time, place = await get_time(args=args, message=message)
-        await bot.send_poll(chat_id=config.group_id, question=f'{time}. {place.capitalize()}. Кто.',
+    argskto = message.text.split(' ')
+    if argskto[0] == '/кто':
+        time, place = await get_time(args=args.lstrip('/кто '), message=message)
+        await bot.send_poll(chat_id=config.group_id, question=f'{time} {place.capitalize()} Кто.',
                             options=['Я', 'Не я'], is_anonymous=False)
 
 
