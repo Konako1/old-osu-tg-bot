@@ -247,12 +247,30 @@ async def message_writer(message: Message):
         await info_reply(f"/say было вызвано {says.get_say_count()} раз")
 
 
+async def right_time_check(message: Message, time: str):
+    time_h, time_m = time.split(':')
+    if int(time_h) >= 24:
+        await message.reply('Научись писать время, ебанат')
+        raise ValueError
+    if int(time_m) >= 60:
+        await message.reply('Научись писать время, ебанат')
+        raise ValueError
+
+
 async def get_time(message: Message, args: str) -> tuple[str, str]:
-    now = ['щас', "сейчас", "now"]
-    if args.lstrip() == '':
-        time = f'{datetime.datetime.now().hour + 1}:00.'
+    now = ['щас', "сейчас", "now", "епта"]
+    if args == '':
+        time = ''
+        if datetime.now().minute < 15:
+            time = f'{datetime.now().hour}:30'
+        elif datetime.now().minute in range(15, 30):
+            time = f'{datetime.now().hour}:45'
+        elif datetime.now().minute in range(31, 45):
+            time = f'{datetime.now().hour + 1}:00'
+        elif datetime.now().minute > 45:
+            time = f'{datetime.now().hour + 1}:15'
         place = 'Борщ.'
-        return time, place
+        return time + '.', place
     elif len(args.split(' ')) == 1:
         if args.split(' ')[0].isalpha() and args.split(' ')[0] not in now:
             time = ''
@@ -260,7 +278,7 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
             return time, place + '.'
         else:
             time = args.split(' ')[0]
-            place = 'Борщ.'
+            place = 'Борщ'
     elif args.split(' ', maxsplit=1)[0].lower() in now or args.split(' ', maxsplit=1)[0].count(':') or int(args.split(' ', maxsplit=1)[0].isnumeric()):
         place, time = args.split(' ', maxsplit=1)
     elif args.rsplit(' ', maxsplit=1)[1].lower() in now or args.rsplit(' ', maxsplit=1)[1].count(':') or int(args.rsplit(' ', maxsplit=1)[1].isnumeric()):
@@ -270,16 +288,15 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
         raise ValueError
 
     if str(time) not in now and time != '':
+        if time.count('-'):
+            time_split = time.split('-')
+            for count in range(len(time_split)):
+                if time_split[count].count(':'):
+                    await right_time_check(message, time_split[count])
         if time.count(':'):
-            time_h, time_m = time.split(':')
-            if int(time_h) >= 24:
-                await message.reply('Научись писать время, ебанат')
-                raise ValueError
-            if int(time_m) >= 60:
-                await message.reply('Научись писать время, ебанат')
-                raise ValueError
+            await right_time_check(message, time)
         else:
-            if int(time) > 24:
+            if int(time) > 23:
                 await message.reply('Научись писать время, ебанат')
                 raise ValueError
             if time in ('1', '21'):
@@ -287,7 +304,7 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
                     time = 'Час'
                 else:
                     time = f'{time} час'
-            elif int(time) in range(2, 4) or int(time) in range(22, 24):
+            elif int(time) in range(2, 4) or int(time) in range(22, 23):
                 time = f'{time} часа'
             else:
                 time = f'{time} часов'
@@ -302,11 +319,16 @@ async def eblani(message: Message):
         await bot.send_message(config.group_id, text=simple_math.math(message.from_user.id))
     if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
-    argskto = message.text.split(' ')
-    if argskto[0] == '/кто':
-        time, place = await get_time(args=args.lstrip('/кто '), message=message)
-        await bot.send_poll(chat_id=config.group_id, question=f'{time} {place.capitalize()} Кто.',
-                            options=['Я', 'Не я'], is_anonymous=False)
+    argslist = message.text.split(' ')
+
+    if argslist[0] == '/кто':
+        time, place = await get_time(args=args.removeprefix('/кто'), message=message)
+        options = ['Я', 'Не я']
+        if time == '':
+            if place == 'я.':
+                options = ['Пидорас', 'Педофил']
+        await bot.send_poll(chat_id=config.group_id, question=f'{time.capitalize()} {place.capitalize()} Кто.',
+                            options=options, is_anonymous=False)
 
 
 async def on_startup(_):
