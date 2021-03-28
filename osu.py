@@ -336,6 +336,11 @@ class Osu:
             {}
         )
 
+    async def get_user_nickname(self, user_id: int) -> tuple[str, str, str]:
+        user_data = await self.get_user_data(user_id)
+        url = f"https://osu.pp.sh/users/{user_data['id']}"
+        return user_data['username'], user_data['rankHistory']['data'][-1], url
+
     # TODO: top5 recent notable scores
 
     async def recent(
