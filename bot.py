@@ -67,6 +67,8 @@ async def cache_check(
         osu_id = await db.get_cached_user(args)
         if osu_id is None:
             osu_id = await osu.get_user_id(args)
+            if osu_id == 0:
+                await exception_reply(message, 'User not found')
             await db.cache_user(args, osu_id)
         return osu_id
 
@@ -232,6 +234,10 @@ async def set_osu_nickname(message: Message, db: database.OsuDb):
 
 async def info_reply(text: str):
     await bot.send_message(config.test_group_id, text=text)
+
+
+async def exception_reply(message: Message, text: str):
+    await message.reply(text=text)
 
 
 @dp.message_handler(chat_id=config.test_group_id, text_startswith='!')
