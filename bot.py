@@ -1,5 +1,3 @@
-import datetime
-
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message, BotCommand
 from aiogram.utils.exceptions import WrongFileIdentifier
@@ -7,6 +5,7 @@ from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
 import simple_math
 import emoji
+from datetime import datetime
 
 import database
 from osu import Osu, request_to_osu
@@ -56,6 +55,7 @@ async def hints(
 
 
 async def cache_check(
+        message: Message,
         args: str,
         db: database.OsuDb,
         user_id: int
@@ -83,7 +83,7 @@ async def start(message: Message):
 @dp.message_handler(commands=['recent'])
 async def recent(message: Message, db: database.OsuDb):
     args = message.get_args()
-    osu_id = await cache_check(args, db, message.from_user.id)
+    osu_id = await cache_check(message, args, db, message.from_user.id)
 
     if osu_id is None:
         await message.reply('You forgot to write a nickname')
@@ -127,9 +127,9 @@ async def recent(message: Message, db: database.OsuDb):
 
 
 @dp.message_handler(commands=['profile'])
-async def user_info(message: Message, db: database.OsuDb):
+async def profile(message: Message, db: database.OsuDb):
     args = message.get_args()
-    osu_id = await cache_check(args, db, message.from_user.id)
+    osu_id = await cache_check(message, args, db, message.from_user.id)
 
     if osu_id is None:
         await message.reply('You forgot to write a nickname')
@@ -244,9 +244,9 @@ async def exception_reply(message: Message, text: str):
 async def message_writer(message: Message):
     args = message.text
     if args.startswith('!say'):
-        await bot.send_message(config.group_id, text=args.lstrip('!say '))
+        await bot.send_message(config.group_id, text=args.removeprefix('!say '))
     if args.startswith('!add'):
-        pastes.add_paste(text=args.lstrip('!add '))
+        pastes.add_paste(text=args.removeprefix('!add '))
         pastes.save()
         await message.reply('ok')
     if args.startswith('!c'):
@@ -320,9 +320,11 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
 @dp.message_handler(chat_id=config.group_id, text_startswith='/')
 async def eblani(message: Message):
     args = message.text
+
     if args == '/say':
         says.say_was_sayed()
         await bot.send_message(config.group_id, text=simple_math.math(message.from_user.id))
+
     if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
 
