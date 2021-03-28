@@ -8,7 +8,7 @@ symbols = [
     '/',
     '^'
 ]
-path = 'Desktop/a/Хацкерство/python/osuTest/'
+path = 'C:/Users/konak/Desktop/a/Хацкерство/python/osuTest/'
 
 
 class Says:
