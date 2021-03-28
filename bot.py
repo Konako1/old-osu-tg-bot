@@ -344,7 +344,8 @@ async def on_startup(_):
     await bot.set_my_commands([
         BotCommand('recent', "Get user's recent score"),
         BotCommand('profile', "Get user's profile"),
-        BotCommand('remember_me', "Remember user's nickname for commands")
+        BotCommand('remember_me', "Remember user's nickname for commands"),
+        BotCommand('top5', "Get user's 5 best plays")
     ])
 
 
