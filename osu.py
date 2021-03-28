@@ -451,15 +451,9 @@ class Osu:
 
         rank, accuracy = get_score_rank(best_score[0]['rank'], best_score[0]['accuracy'])
 
-        highest_pp_play = f'<b>{quote_html(best_score[0]["beatmapset"]["title"])}</b> by ' \
-                          f'<b>{quote_html(best_score[0]["beatmapset"]["artist"])} ' \
-                          f'[{quote_html(best_score[0]["beatmap"]["version"])}]</b>\n' \
-                          f'<b>{rank} {accuracy}{combo}</b>\n' \
-                          f'{{{best_score[0]["statistics"]["count_300"]} / {best_score[0]["statistics"]["count_100"]}' \
-                          f' / {best_score[0]["statistics"]["count_50"]} / ' \
-                          f'{best_score[0]["statistics"]["count_miss"]}}}\n' \
-                          f'<b>{best_score[0]["pp"]}pp</b>\n' \
-                          f'{score_time}'
+        map_url = beatmap['url']
+
+        highest_pp_play = print_pp_play(best_score[0], rank, accuracy, combo, score_time, map_url, True)
 
         rank_change = user_data['rank_history']['data'][-7] - user_data['rank_history']['data'][-1]
         if rank_change > 0:
