@@ -491,6 +491,36 @@ class Osu:
             url=url,
         )
 
+    async def get_top5_best_plays(self, user_id: int) -> tuple[str, str]:
+        try:
+            best_score = await self.get_user_score(user_id, 'best', 5)
+        except IndexError:
+            raise IndexError("User hasn't set a single score yet")
+        msg = ''
+        map_pic_url = ''
+        for i in range(5):
+            beatmap = await self.get_beatmap(best_score[i]['beatmap']['id'])
+
+            score_time = parser.parse(best_score[i]['created_at'])
+            score_time = score_time.strftime('%d %B %Y')
+            if score_time[i] == '0':
+                score_time = score_time.lstrip('0')
+
+            if best_score[i]['perfect']:
+                combo = 'FC'
+            else:
+                combo = f'<b>{best_score[i]["max_combo"]}/{beatmap["max_combo"]}x</b>'
+
+            rank, accuracy = get_score_rank(best_score[i]['rank'], best_score[i]['accuracy'])
+            map_url = beatmap['url']
+
+            if i == 0:
+                map_pic_url = beatmap['beatmapset']['covers']['cover']
+
+            plays = print_pp_play(best_score[i], rank, accuracy, combo, score_time, map_url, False)
+            msg += f'{plays}\n\n'
+        return msg, map_pic_url
+
     async def get_user_id(
             self,
             query: str

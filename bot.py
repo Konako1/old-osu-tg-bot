@@ -184,6 +184,39 @@ async def user_info(message: Message, db: database.OsuDb):
         )
 
 
+@dp.message_handler(commands=['top5'])
+async def best_scores(message: Message, db: database.OsuDb):
+    args = message.get_args()
+    osu_id = await cache_check(message, args, db, message.from_user.id)
+    if osu_id is None:
+        await message.reply('You forgot to write a nickname!')
+        return
+
+    await bot.send_chat_action(message.chat.id, 'typing')
+
+    try:
+        result, map_pic = await osu.get_top5_best_plays(osu_id)
+        nickname, rank, url = await osu.get_user_nickname(osu_id)
+    except ReadTimeout:
+        await message.reply('Banco is dead')
+        return
+    except HTTPStatusError as e:
+        if e.response.status_code // 100 == 5:
+            await message.reply('Bancho is dead')
+        return
+    except IndexError as e:
+        await message.reply(f'{e}')
+        return
+    await info_reply(f'Top5 searched for: {nickname} #{rank}')
+
+    message_text = f'5 best scores for: <a href="{url}">{nickname}</a> #{rank}\n\n{result}'
+
+    try:
+        await message.reply_photo(photo=map_pic, caption=message_text)
+    except WrongFileIdentifier:
+        await message.reply(result, disable_web_page_preview=True)
+
+
 @dp.message_handler(commands=['remember_me'])
 async def set_osu_nickname(message: Message, db: database.OsuDb):
     args = message.get_args()
