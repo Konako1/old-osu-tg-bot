@@ -319,6 +319,12 @@ async def eblani(message: Message):
         await bot.send_message(config.group_id, text=simple_math.math(message.from_user.id))
     if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
+
+    if args == '/del' and message.from_user.id == 344580096:
+        reply_id = message.reply_to_message.message_id
+        msg_id = message.message_id
+        await bot.delete_message(chat_id=config.group_id, message_id=reply_id)
+        await bot.delete_message(chat_id=config.group_id, message_id=msg_id)
     argslist = message.text.split(' ')
 
     if argslist[0] == '/кто':
