@@ -551,7 +551,7 @@ class Osu:
         try:
             response = is_in_api['user']['data'][0]
         except IndexError:
-            raise IndexError('User not found') from None
+            return 0
         user_id = response['id']
         return user_id
 
