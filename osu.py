@@ -228,6 +228,7 @@ def print_pp_play(best_score, rank, accuracy, combo, score_time, url, get_more_i
     play += f'{score_time}'
     return play
 
+# TODO: refactor this shit
 class Osu:
     def __init__(self, token: str):
         self._token = token
@@ -342,12 +343,14 @@ class Osu:
         return user_data['username'], user_data['rankHistory']['data'][-1], url
 
     # TODO: top5 recent notable scores
+    # TODO: rank on a map method
 
     async def recent(
             self,
             user_id: int,
     ) -> Score:
         user_data = await self.get_user_data(user_id)
+
         user_rank = user_data['rankHistory']['data'][-1]
         r_score = await self.get_user_score(user_id, 'recent', 1)
         try:
@@ -420,8 +423,6 @@ class Osu:
             flag=flag,
             pp=pp
         )
-
-    # TODO: top5 user's best plays
 
     async def user_info(
             self,
@@ -505,6 +506,7 @@ class Osu:
             join_date=join_date,
             url=url,
         )
+    # TODO: top5 user's best plays
 
     async def get_top5_best_plays(self, user_id: int) -> tuple[str, str]:
         try:
