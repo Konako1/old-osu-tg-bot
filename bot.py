@@ -1,10 +1,11 @@
 from aiogram import Bot, Dispatcher, executor
-from aiogram.types import Message, BotCommand
+from aiogram.types import Message, BotCommand, ContentTypes
 from aiogram.utils.exceptions import WrongFileIdentifier
 from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
 import simple_math
 import emoji
+import random
 from datetime import datetime
 
 import database
@@ -343,6 +344,16 @@ async def eblani(message: Message):
                 options = ['Пидорас', 'Педофил']
         await bot.send_poll(chat_id=config.group_id, question=f'{time.capitalize()} {place.capitalize()} Кто.',
                             options=options, is_anonymous=False)
+
+
+@dp.message_handler(chat_id=config.group_id, content_types=ContentTypes.STICKER, )
+async def bear(message: Message):
+    args = message.sticker.file_unique_id
+    if args == 'AgADXAADDnr7Cg':
+        rnd = random.choice(range(3))
+        if rnd == 0:
+            await bot.send_sticker(chat_id=config.group_id,
+                                   sticker='CAACAgIAAxkBAAECH0VgYjnrZnEhC9I3mjXeIlJZVf4osQACXAADDnr7CuShPCAcZWbPHgQ')
 
 
 async def on_startup(_):
