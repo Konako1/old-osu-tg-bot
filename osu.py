@@ -228,6 +228,7 @@ def print_pp_play(best_score, rank, accuracy, combo, score_time, url, get_more_i
     play += f'{score_time}'
     return play
 
+
 # TODO: refactor this shit
 class Osu:
     def __init__(self, token: str):
@@ -390,6 +391,8 @@ class Osu:
         flag = get_flag(user_data['country']['code'].lower())
 
         completed, pp, stars = await get_pp_for_score(await self.get_osu_file(beatmap['id']), score, print_status)
+
+        # TODO: place on a leaderboard
 
         # score_on_beatmap = await self.get_user_beatmap_score(beatmap['id'], user_id)
         # pprint(user_data)
