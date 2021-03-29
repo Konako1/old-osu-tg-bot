@@ -11,6 +11,7 @@ from datetime import datetime
 import database
 from osu import Osu, request_to_osu
 import config
+from config import users as ls
 from simple_math import Says
 from paste_updater import PasteUpdater
 
@@ -329,7 +330,27 @@ async def eblani(message: Message):
     if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
 
-    if args == '/del' and message.from_user.id == 344580096:
+    if args == '/all':
+        await bot.send_message(
+            text=
+            f'<a href="tg://user?id={ls["konako"]}">Величайший</a>, '
+            f'<a href="tg://user?id={ls["evg"]}">Гегжег</a>, '
+            f'<a href="tg://user?id={ls["gnome"]}">гном</a>, '
+            f'<a href="tg://user?id={ls["yura"]}">Юра</a>, '
+            f'<a href="tg://user?id={ls["lyoha"]}">Леха</a>, '
+            f'<a href="tg://user?id={ls["acoola"]}">Акулятор</a>, '
+            f'<a href="tg://user?id={ls["gelya"]}">Сшсшсшгеля</a>, '
+            f'<a href="tg://user?id={ls["ship"]}">Кораблееб</a>, '
+            f'<a href="tg://user?id={ls["bigdown"]}">BigDown</a>, '
+            f'<a href="tg://user?id={ls["yana"]}">Яна</a>, '
+            f'<a href="tg://user?id={ls["anastasia"]}">Анастасия</a>, '
+            f'{ls["smoosya"]}, '
+            f'{ls["sonya"]}',
+            chat_id=config.group_id,
+            reply_to_message_id=message.message_id
+        )
+
+    if args == '/del' and message.from_user.id == ls["konako"]:
         reply_id = message.reply_to_message.message_id
         msg_id = message.message_id
         await bot.delete_message(chat_id=config.group_id, message_id=reply_id)
