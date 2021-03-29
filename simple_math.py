@@ -1,5 +1,6 @@
 import random
 import json
+from config import users as ls
 
 symbols = [
     '+',
@@ -69,25 +70,25 @@ def random_symbol() -> str:
 
 
 def id_to_nick(user_id) -> str:
-    if user_id == 230130383:
+    if user_id == ls["evg"]:
         return 'Гегжег'
-    elif user_id == 354257860:
+    elif user_id == ls["gnome"]:
         return 'гном'
-    elif user_id == 344580096:
+    elif user_id == ls["konako"]:
         return 'Рыжая полосатая сосалка'
-    elif user_id == 491913259:
+    elif user_id == ls["yura"]:
         return 'Юрец в очке хуец'
-    elif user_id == 477661013:
+    elif user_id == ls["lyoha"]:
         return 'Покупатель говна'
-    elif user_id == 509910914:
+    elif user_id == ls["acoola"]:
         return 'Акулятор'
-    elif user_id == 1183526216:
+    elif user_id == ls["ship"]:
         return 'Кораблееб'
-    elif user_id == 434975678:
+    elif user_id == ls["gelya"]:
         return 'а теперь сходи пж за энергосом'
-    elif user_id == 927490899:
+    elif user_id == ls["bigdown"]:
         return 'Bigдан'
-    elif user_id == 278895723:
+    elif user_id == ls['jelezka']:
         return str('но ты все равно иди нахуй железяка бездушная'.encode())
     else:
         return '*я даже не думал, что ты вызовешь эту команду лол*'
