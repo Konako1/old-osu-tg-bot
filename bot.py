@@ -319,6 +319,7 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
     return time + '.', place + '.'
 
 
+# TODO: /all /gamers /etc
 @dp.message_handler(chat_id=config.group_id, text_startswith='/')
 async def eblani(message: Message):
     args = message.text
