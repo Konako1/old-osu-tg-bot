@@ -17,6 +17,7 @@ from paste_updater import PasteUpdater
 
 
 says = Says()
+bear_date = [-1, 9]
 pastes = PasteUpdater()
 bot = Bot(config.TG_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
@@ -373,11 +374,36 @@ async def eblani(message: Message):
 @dp.message_handler(chat_id=config.group_id, content_types=ContentTypes.STICKER, )
 async def bear(message: Message):
     args = message.sticker.file_unique_id
+
     if args == 'AgADXAADDnr7Cg':
-        rnd = random.choice(range(3))
-        if rnd == 0:
-            await bot.send_sticker(chat_id=config.group_id,
-                                   sticker='CAACAgIAAxkBAAECH0VgYjnrZnEhC9I3mjXeIlJZVf4osQACXAADDnr7CuShPCAcZWbPHgQ')
+        date = f'{message.date.hour}:{message.date.minute}:{message.date.second}:{message.date.day}'
+        date = date.split(":")
+        message_date = int(date[0]) * 3600 + int(date[1]) * 60 + int(date[2])
+        hour, min, sec, day = datetime.now().hour, datetime.now().min, datetime.now().second, datetime.now().day
+
+        if bear_date[0] == -1:  # если -1, то ставится дата ласт медведя и дефолт вероятность 0.1
+            bear_date[0] = message_date
+            bear_date[1] = 9
+            print('bear added')
+            return
+
+        if int(date[3]) != day:
+            print(f'ты лох\n{date[3]}\n{day}')
+            return  # не будет работать при смене дня, но мне лень с этим ебаться
+
+        time_calc = message_date - bear_date[0]
+
+        if time_calc < 30:
+            rnd = random.choice(range(bear_date[1]))
+            bear_date[1] -= 2
+
+            if rnd == 0:
+                await bot.send_sticker(chat_id=config.group_id,
+                                       sticker='CAACAgIAAxkBAAECH0VgYjnrZnEhC9I3mjXeIlJZVf4osQACXAADDnr7CuShPCAcZWbPHgQ')
+                print(f"it's bear time\nprob was: {round(1 / (bear_date[1] + 3), 2)}")
+                bear_date[1] = 9
+
+        bear_date[0] = message_date
 
 
 async def on_startup(_):
