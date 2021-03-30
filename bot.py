@@ -331,7 +331,8 @@ async def eblani(message: Message):
     if args == '/pasta':
         await bot.send_message(config.group_id, text=pastes.get_random_paste())
 
-    if args == '/all':
+    args = args.split(' ', maxsplit=1)
+    if args[0] == '/all':
         await bot.send_message(
             text=
             f'<a href="tg://user?id={ls["konako"]}">Величайший</a>, '
@@ -350,14 +351,15 @@ async def eblani(message: Message):
             chat_id=config.group_id,
             reply_to_message_id=message.message_id
         )
+    args = message.text
 
     if args == '/del' and message.from_user.id == ls["konako"]:
         reply_id = message.reply_to_message.message_id
         msg_id = message.message_id
         await bot.delete_message(chat_id=config.group_id, message_id=reply_id)
         await bot.delete_message(chat_id=config.group_id, message_id=msg_id)
-    argslist = message.text.split(' ')
 
+    argslist = message.text.split(' ')
     if argslist[0] == '/кто':
         time, place = await get_time(args=args.removeprefix('/кто'), message=message)
         options = ['Я', 'Не я']
