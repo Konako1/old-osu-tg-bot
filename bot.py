@@ -338,21 +338,21 @@ async def eblani(message: Message):
 
     args = args.split(' ', maxsplit=1)
     if args[0] == '/all':
+        text = id_converter(ls["konako"], 'Величайший') + \
+               id_converter(ls['evg'], 'Гегжег') + \
+               id_converter(ls['gnome'], 'гном') + \
+               id_converter(ls['yura'], 'Юра') + \
+               id_converter(ls['lyoha'], 'Леха') + \
+               id_converter(ls['acoola'], 'Акулятор') + \
+               id_converter(ls['gelya'], 'Сшсшсшгеля') + \
+               id_converter(ls['ship'], 'Кораблееб') + \
+               id_converter(ls['bigdown'], 'BigDown') + \
+               id_converter(ls['yana'], 'Яна') + \
+               id_converter(ls['anastasia'], 'Анастасия') + \
+               ls['smoosya'] + \
+               ls['sonya']
         await bot.send_message(
-            text=
-            f'<a href="tg://user?id={ls["konako"]}">Величайший</a>, '
-            f'<a href="tg://user?id={ls["evg"]}">Гегжег</a>, '
-            f'<a href="tg://user?id={ls["gnome"]}">гном</a>, '
-            f'<a href="tg://user?id={ls["yura"]}">Юра</a>, '
-            f'<a href="tg://user?id={ls["lyoha"]}">Леха</a>, '
-            f'<a href="tg://user?id={ls["acoola"]}">Акулятор</a>, '
-            f'<a href="tg://user?id={ls["gelya"]}">Сшсшсшгеля</a>, '
-            f'<a href="tg://user?id={ls["ship"]}">Кораблееб</a>, '
-            f'<a href="tg://user?id={ls["bigdown"]}">BigDown</a>, '
-            f'<a href="tg://user?id={ls["yana"]}">Яна</a>, '
-            f'<a href="tg://user?id={ls["anastasia"]}">Анастасия</a>, '
-            f'{ls["smoosya"]}, '
-            f'{ls["sonya"]}',
+            text=text,
             chat_id=config.group_id,
             reply_to_message_id=message.message_id
         )
