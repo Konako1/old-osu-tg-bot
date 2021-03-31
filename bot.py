@@ -76,6 +76,10 @@ async def cache_check(
         return osu_id
 
 
+def id_converter(id: list, name: str) -> str:
+    return f'<a href="tg://user?id={id}">{name}</a>, '
+
+
 @dp.message_handler(commands=['start'])
 async def start(message: Message):
     await message.reply(
