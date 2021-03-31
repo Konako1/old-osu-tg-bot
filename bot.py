@@ -324,7 +324,6 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
     return time + '.', place + '.'
 
 
-# TODO: /all /gamers /etc
 @dp.message_handler(chat_id=config.group_id, text_startswith='/')
 async def eblani(message: Message):
     args = message.text
@@ -350,6 +349,20 @@ async def eblani(message: Message):
                id_converter(ls['yana'], 'Яна') + \
                id_converter(ls['anastasia'], 'Анастасия') + \
                ls['smoosya'] + \
+               ls['sonya']
+        await bot.send_message(
+            text=text,
+            chat_id=config.group_id,
+            reply_to_message_id=message.message_id
+        )
+    if args[0] == '/gamers':
+        text = id_converter(ls['konako'], 'Cocknako') +\
+               id_converter(ls['gnome'], 'гном') +\
+               id_converter(ls['lyoha'], 'Льоха') +\
+               id_converter(ls['evg'], 'Гегжук') +\
+               id_converter(ls['yura'], 'Лошок') +\
+               id_converter(ls['bigdown'], 'BigData') +\
+               id_converter(ls['ship'], 'Лодка') +\
                ls['sonya']
         await bot.send_message(
             text=text,
