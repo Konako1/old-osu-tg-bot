@@ -276,9 +276,9 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
         time = ''
         if datetime.now().minute < 15:
             time = f'{datetime.now().hour}:30'
-        elif datetime.now().minute in range(15, 30):
+        elif datetime.now().minute in range(15, 31):
             time = f'{datetime.now().hour}:45'
-        elif datetime.now().minute in range(31, 45):
+        elif datetime.now().minute in range(31, 46):
             time = f'{datetime.now().hour + 1}:00'
         elif datetime.now().minute > 45:
             time = f'{datetime.now().hour + 1}:15'
