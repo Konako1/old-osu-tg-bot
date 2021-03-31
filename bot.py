@@ -396,7 +396,7 @@ async def bear(message: Message):
         date = f'{message.date.hour}:{message.date.minute}:{message.date.second}:{message.date.day}'
         date = date.split(":")
         message_date = int(date[0]) * 3600 + int(date[1]) * 60 + int(date[2])
-        hour, min, sec, day = datetime.now().hour, datetime.now().min, datetime.now().second, datetime.now().day
+        day = datetime.now().day
 
         if bear_date[0] == -1:  # если -1, то ставится дата ласт медведя и дефолт вероятность 0.1
             bear_date[0] = message_date
