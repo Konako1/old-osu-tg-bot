@@ -348,8 +348,8 @@ async def eblani(message: Message):
                id_converter(ls['bigdown'], 'BigDown') + \
                id_converter(ls['yana'], 'Яна') + \
                id_converter(ls['anastasia'], 'Анастасия') + \
-               ls['smoosya'] + \
-               ls['sonya']
+               id_converter(ls['smoosya'], 'гача-ремикс') + \
+               id_converter(ls['sonya'], 'Вешалка')
         await bot.send_message(
             text=text,
             chat_id=config.group_id,
@@ -363,7 +363,7 @@ async def eblani(message: Message):
                id_converter(ls['yura'], 'Лошок') +\
                id_converter(ls['bigdown'], 'BigData') +\
                id_converter(ls['ship'], 'Лодка') +\
-               ls['sonya']
+               id_converter(ls['sonya'], 'Вешалка')
         await bot.send_message(
             text=text,
             chat_id=config.group_id,
