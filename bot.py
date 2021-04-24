@@ -49,17 +49,6 @@ async def exceptions(
         return
 
 
-async def hints(
-        result
-) -> str:
-    message_hint = ''
-    if result.user.lower() == 'yura88':
-        message_hint = 'Юра пидарас'
-    if result.user.lower() == 'konako':
-        message_hint = 'Помогите, меня держат в заложниках'
-    return message_hint
-
-
 async def cache_check(
         message: Message,
         args: str,
@@ -166,8 +155,6 @@ async def profile(message: Message, db: database.OsuDb):
         result.country_rank = f" (#{result.country_rank})"
         is_inactive = f'PP: {result.pp} <b>|</b> '
 
-    message_hint = await hints(result)
-
     message_text = emoji.emojize(f"{result.flag} <a href='{result.url}'>{result.user}'s</a> profile:\n\n"
                                  f"<b>{is_inactive}</b><b>{result.global_rank}</b>{result.country_rank}"
                                  f" [{result.rank_change} for the past week]\n\n"
@@ -179,8 +166,6 @@ async def profile(message: Message, db: database.OsuDb):
                                  f"Lvl: <b>{result.lvl_current}.{result.lvl_progress}</b>\n\n"
                                  f"{result.discord}Joined {result.join_date}", use_aliases=True)
 
-    if message_hint != '':
-        await message.answer(message_hint)
     try:
         await message.reply_photo(
             result.avatar,
