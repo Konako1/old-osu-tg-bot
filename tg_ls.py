@@ -270,6 +270,42 @@ async def smart_poll(message: Message):
 # TODO: Add /help command for ls group only
 
 
+async def help(_):
+    bot = Bot.get_current()
+
+    text = f'Список комманд:' \
+           f'/кто - Команда которая преобразует введенное место и время в опрос. /format for more.' \
+           f'/all - Пинг всех участников конфы.' \
+           f'/tmn - Пинг всех участников из Тюмени.' \
+           f'/gamers - Пинг GAYмеров.' \
+           f'/pasta - Рандомная паста.' \
+           f'/say - Бесполезная матеша.' \
+           f'Фичи:' \
+           f'С некоторым шансом бот может кинуть медведя во время спама медведей.'
+
+    await bot.send_message(
+        text=text,
+        chat_id=config.group_id
+    )
+
+
+async def kto_format(_):
+    bot = Bot.get_current()
+
+    text = f'/кто - [округленное_время]. Борщ. Кто.' \
+           f'/кто [время] - [время]. Борщ. Кто.' \
+           f'/кто [место] - [округленное_время]. [место]. Кто.' \
+           f'/кто [место] [время] (порядок не важен) - [время]. [место]. Кто.' \
+           f'Формат времени:' \
+           f'11; 11:11; 11-11:11 слова, такие как "вечером", "сейчас", "now", "епта" и тд.' \
+           f'Если вы тупой и не знаете как правильно писать часы и минуты, то бот вам об этом сообщит.'
+
+    await bot.send_message(
+        text=text,
+        chat_id=config.group_id
+    )
+
+
 def setup(dp: Dispatcher):
     dp.register_message_handler(smart_poll, commands=['кто'])
     dp.register_message_handler(delete_message, commands=['del'])
@@ -278,3 +314,5 @@ def setup(dp: Dispatcher):
     dp.register_message_handler(gamers, commands=['gamers'])
     dp.register_message_handler(pasta, commands=['pasta'])
     dp.register_message_handler(say, commands=['say'])
+    dp.register_message_handler(help, commands=['help'])
+    dp.register_message_handler(kto_format, commands=['format'])
