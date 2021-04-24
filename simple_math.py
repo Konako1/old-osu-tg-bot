@@ -90,6 +90,8 @@ def id_to_nick(user_id) -> str:
         return 'Bigдан'
     elif user_id == ls['jelezka']:
         return str('но ты все равно иди нахуй железяка бездушная'.encode())
+    elif user_id == ls['smoosya']:
+        return str('ладно, ладно, дам тебе имя')
     else:
         return '*я даже не думал, что ты вызовешь эту команду лол*'
 
