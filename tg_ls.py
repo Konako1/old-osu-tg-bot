@@ -8,7 +8,6 @@ from config import group_id, test_group_id
 
 says = Says()
 pastes = PasteUpdater()
-bot = Bot.get_current()
 
 
 async def right_time_check(message: Message, time: str):
@@ -85,6 +84,7 @@ def id_converter(tg_id: list, name: str) -> str:
 
 
 async def say(message: Message):
+    bot = Bot.get_current()
     args = message.text
     if args == '/say':
         says.say_was_sayed()
@@ -92,12 +92,15 @@ async def say(message: Message):
 
 
 async def pasta(message: Message):
+    bot = Bot.get_current()
     args = message.text
     if args == '/pasta':
         await bot.send_message(group_id, text=pastes.get_random_paste())
 
 
+# TODO: refactor this shit to new method for ping
 async def all(message: Message):
+    bot = Bot.get_current()
     args = message.text
     args = args.split(' ', maxsplit=1)
 
@@ -122,7 +125,32 @@ async def all(message: Message):
         )
 
 
+async def tmn(message: Message):
+    bot = Bot.get_current()
+    args = message.text
+    args = args.split(' ', maxsplit=1)
+
+    if args[0] == '/tmn':
+        text = id_converter(ls["konako"], 'Величайший') + \
+               id_converter(ls['evg'], 'Гегжег') + \
+               id_converter(ls['gnome'], 'гном') + \
+               id_converter(ls['lyoha'], 'Леха') + \
+               id_converter(ls['acoola'], 'Акулятор') + \
+               id_converter(ls['gelya'], 'Сшсшсшгеля') + \
+               id_converter(ls['bigdown'], 'BigDown') + \
+               id_converter(ls['yana'], 'Яна') + \
+               id_converter(ls['anastasia'], 'Анастасия') + \
+               id_converter(ls['smoosya'], 'гача-ремикс') + \
+               id_converter(ls['sonya'], 'Вешалка')
+        await bot.send_message(
+            text=text,
+            chat_id=group_id,
+            reply_to_message_id=message.message_id
+        )
+
+
 async def gamers(message: Message):
+    bot = Bot.get_current()
     args = message.text
     args = args.split(' ', maxsplit=1)
 
@@ -143,6 +171,7 @@ async def gamers(message: Message):
 
 
 async def delete_message(message: Message):
+    bot = Bot.get_current()
     args = message.text
     if args == '/del' and message.from_user.id == ls["konako"]:
         reply_id = message.reply_to_message.message_id
@@ -151,8 +180,8 @@ async def delete_message(message: Message):
         await bot.delete_message(chat_id=group_id, message_id=msg_id)
 
 
-# TODO: random bad apple video
 async def smart_poll(message: Message):
+    bot = Bot.get_current()
     args = message.text
     argslist = message.text.split(' ', maxsplit=1)
 
@@ -168,10 +197,16 @@ async def smart_poll(message: Message):
         await bot.delete_message(chat_id=group_id, message_id=message.message_id)
 
 
+# TODO: random bad apple video
+# TODO: random bad apple frame as avatar in tg
+# TODO: Add /help command for ls group only
+
+
 def setup(dp: Dispatcher):
     dp.register_message_handler(smart_poll, commands=['кто'])
     dp.register_message_handler(delete_message, commands=['del'])
     dp.register_message_handler(all, commands=['all'])
+    dp.register_message_handler(tmn, commands=['tmn'])
     dp.register_message_handler(gamers, commands=['gamers'])
     dp.register_message_handler(pasta, commands=['pasta'])
     dp.register_message_handler(say, commands=['say'])
