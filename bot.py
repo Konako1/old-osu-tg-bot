@@ -1,17 +1,20 @@
+from asyncio import run
+
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message, BotCommand, ContentTypes
 from aiogram.utils.exceptions import WrongFileIdentifier
 from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
-import simple_math
 import emoji
 import random
 from datetime import datetime
 
+import tg_ls
+import test_group
 import database
+
 from osu import Osu, request_to_osu
 import config
-from config import users as ls
 from simple_math import Says
 from paste_updater import PasteUpdater
 
@@ -74,10 +77,6 @@ async def cache_check(
                 await exception_reply(message, 'User not found')
             await db.cache_user(args, osu_id)
         return osu_id
-
-
-def id_converter(id: list, name: str) -> str:
-    return f'<a href="tg://user?id={id}">{name}</a>, '
 
 
 @dp.message_handler(commands=['start'])
@@ -247,147 +246,6 @@ async def exception_reply(message: Message, text: str):
     await message.reply(text=text)
 
 
-@dp.message_handler(chat_id=config.test_group_id, text_startswith='!')
-async def message_writer(message: Message):
-    args = message.text
-    if args.startswith('!say'):
-        await bot.send_message(config.group_id, text=args.removeprefix('!say '))
-    if args.startswith('!add'):
-        pastes.add_paste(text=args.removeprefix('!add '))
-        pastes.save()
-        await message.reply('ok')
-    if args.startswith('!c'):
-        await info_reply(f"/say было вызвано {says.get_say_count()} раз")
-
-
-async def right_time_check(message: Message, time: str):
-    time_h, time_m = time.split(':')
-    if int(time_h) >= 24:
-        await message.reply('Научись писать время, ебанат')
-        raise ValueError
-    if int(time_m) >= 60:
-        await message.reply('Научись писать время, ебанат')
-        raise ValueError
-
-
-async def get_time(message: Message, args: str) -> tuple[str, str]:
-    now = ['щас', "сейчас", "now", "епта"]
-    if args == '':
-        time = ''
-        if datetime.now().minute < 15:
-            time = f'{datetime.now().hour}:30'
-        elif datetime.now().minute in range(15, 31):
-            time = f'{datetime.now().hour}:45'
-        elif datetime.now().minute in range(31, 46):
-            time = f'{datetime.now().hour + 1}:00'
-        elif datetime.now().minute > 45:
-            time = f'{datetime.now().hour + 1}:15'
-        place = 'Борщ.'
-        return time + '.', place
-    elif len(args.split(' ')) == 1:
-        if args.split(' ')[0].isalpha() and args.split(' ')[0] not in now:
-            time = ''
-            place = args.split(' ')[0]
-            return time, place + '.'
-        else:
-            time = args.split(' ')[0]
-            place = 'Борщ'
-    elif args.split(' ', maxsplit=1)[0].lower() in now or args.split(' ', maxsplit=1)[0].count(':') or int(args.split(' ', maxsplit=1)[0].isnumeric()):
-        place, time = args.split(' ', maxsplit=1)
-    elif args.rsplit(' ', maxsplit=1)[1].lower() in now or args.rsplit(' ', maxsplit=1)[1].count(':') or int(args.rsplit(' ', maxsplit=1)[1].isnumeric()):
-        place, time = args.rsplit(' ', maxsplit=1)
-    else:
-        await message.reply('Пошел нахуй дебила кусок')
-        raise ValueError
-
-    if str(time) not in now and time != '':
-        if time.count('-'):
-            time_split = time.split('-')
-            for count in range(len(time_split)):
-                if time_split[count].count(':'):
-                    await right_time_check(message, time_split[count])
-        if time.count(':'):
-            await right_time_check(message, time)
-        else:
-            if int(time) > 23:
-                await message.reply('Научись писать время, ебанат')
-                raise ValueError
-            if time in ('1', '21'):
-                if time == '1':
-                    time = 'Час'
-                else:
-                    time = f'{time} час'
-            elif int(time) in range(2, 4) or int(time) in range(22, 23):
-                time = f'{time} часа'
-            else:
-                time = f'{time} часов'
-    return time + '.', place + '.'
-
-
-@dp.message_handler(chat_id=config.group_id, text_startswith='/')
-async def eblani(message: Message):
-    args = message.text
-
-    if args == '/say':
-        says.say_was_sayed()
-        await bot.send_message(config.group_id, text=simple_math.math(message.from_user.id))
-
-    if args == '/pasta':
-        await bot.send_message(config.group_id, text=pastes.get_random_paste())
-
-    args = args.split(' ', maxsplit=1)
-    if args[0] == '/all':
-        text = id_converter(ls["konako"], 'Величайший') + \
-               id_converter(ls['evg'], 'Гегжег') + \
-               id_converter(ls['gnome'], 'гном') + \
-               id_converter(ls['yura'], 'Юра') + \
-               id_converter(ls['lyoha'], 'Леха') + \
-               id_converter(ls['acoola'], 'Акулятор') + \
-               id_converter(ls['gelya'], 'Сшсшсшгеля') + \
-               id_converter(ls['ship'], 'Кораблееб') + \
-               id_converter(ls['bigdown'], 'BigDown') + \
-               id_converter(ls['yana'], 'Яна') + \
-               id_converter(ls['anastasia'], 'Анастасия') + \
-               id_converter(ls['smoosya'], 'гача-ремикс') + \
-               id_converter(ls['sonya'], 'Вешалка')
-        await bot.send_message(
-            text=text,
-            chat_id=config.group_id,
-            reply_to_message_id=message.message_id
-        )
-    if args[0] == '/gamers':
-        text = id_converter(ls['konako'], 'Cocknako') +\
-               id_converter(ls['gnome'], 'гном') +\
-               id_converter(ls['lyoha'], 'Льоха') +\
-               id_converter(ls['evg'], 'Гегжук') +\
-               id_converter(ls['yura'], 'Лошок') +\
-               id_converter(ls['bigdown'], 'BigData') +\
-               id_converter(ls['ship'], 'Лодка') +\
-               id_converter(ls['sonya'], 'Вешалка')
-        await bot.send_message(
-            text=text,
-            chat_id=config.group_id,
-            reply_to_message_id=message.message_id
-        )
-    args = message.text
-
-    if args == '/del' and message.from_user.id == ls["konako"]:
-        reply_id = message.reply_to_message.message_id
-        msg_id = message.message_id
-        await bot.delete_message(chat_id=config.group_id, message_id=reply_id)
-        await bot.delete_message(chat_id=config.group_id, message_id=msg_id)
-
-    argslist = message.text.split(' ')
-    if argslist[0] == '/кто':
-        time, place = await get_time(args=args.removeprefix('/кто'), message=message)
-        options = ['Я', 'Не я']
-        if time == '':
-            if place == 'я.':
-                options = ['Пидорас', 'Педофил']
-        await bot.send_poll(chat_id=config.group_id, question=f'{time.capitalize()} {place.capitalize()} Кто.',
-                            options=options, is_anonymous=False)
-
-
 @dp.message_handler(chat_id=config.group_id, content_types=ContentTypes.STICKER, )
 async def bear(message: Message):
     args = message.sticker.file_unique_id
@@ -439,5 +297,18 @@ async def on_shutdown(_):
     await osu.close()
 
 
+def register():
+    tg_ls.setup(dp)
+    test_group.setup(dp)
+
+
+async def main():
+    register()
+    await dp.start_polling()
+    #await executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)
+
+
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)
+    run(main())
+
+
