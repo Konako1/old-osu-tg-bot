@@ -268,13 +268,15 @@ async def bear(message: Message):
 
         time_calc = message_date - bear_date[0]
 
-        if time_calc < 30:
+        if time_calc < 240:
             rnd = random.choice(range(bear_date[1]))
             bear_date[1] -= 2
 
             if rnd == 0:
-                await bot.send_sticker(chat_id=config.group_id,
-                                       sticker='CAACAgIAAxkBAAECH0VgYjnrZnEhC9I3mjXeIlJZVf4osQACXAADDnr7CuShPCAcZWbPHgQ')
+                await bot.send_sticker(
+                    chat_id=config.group_id,
+                    sticker='CAACAgIAAxkBAAECH0VgYjnrZnEhC9I3mjXeIlJZVf4osQACXAADDnr7CuShPCAcZWbPHgQ'
+                )
                 print(f"it's bear time\nprob was: {round(1 / (bear_date[1] + 3), 2)}")
                 bear_date[1] = 9
 
