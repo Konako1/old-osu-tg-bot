@@ -7,14 +7,13 @@ from paste_updater import PasteUpdater
 
 pastes = PasteUpdater()
 says = Says()
-bot = Bot.get_current()
 
 
 async def say_to_ls(message: Message):
     args = message.text
 
     if args.startswith('/message'):
-        await bot.send_message(group_id, text=args.removeprefix('/message '))
+        await message.bot.send_message(group_id, text=args.removeprefix('/message '))
 
 
 async def add_paste(message: Message):
@@ -30,8 +29,7 @@ async def say_count(message: Message):
     args = message.text
 
     if args.startswith('/c'):
-        print(f'count {args}')
-        await bot.send_message(text=f"/say было вызвано {says.get_say_count()} раз", chat_id=test_group_id)
+        await message.bot.send_message(text=f"/say было вызвано {says.get_say_count()} раз", chat_id=test_group_id)
 
 
 async def help(message: Message):
