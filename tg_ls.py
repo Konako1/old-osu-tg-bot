@@ -265,6 +265,43 @@ async def smart_poll(message: Message):
         await bot.delete_message(chat_id=group_id, message_id=message.message_id)
 
 
+async def bear(message: Message):
+    bot = Bot.get_current()
+    args = message.sticker.file_unique_id
+
+    if args == 'AgADXAADDnr7Cg':
+        date = f'{message.date.hour}:{message.date.minute}:{message.date.second}:{message.date.day}'
+        date = date.split(":")
+        message_date = int(date[0]) * 3600 + int(date[1]) * 60 + int(date[2])
+        day = datetime.now().day
+
+        if bear_date[0] == -1:  # если -1, то ставится дата ласт медведя и дефолт вероятность 0.1
+            bear_date[0] = message_date
+            bear_date[1] = 9
+            print('bear added')
+            return
+
+        if int(date[3]) != day:
+            print(f'ты лох\n{date[3]}\n{day}')
+            return  # не будет работать при смене дня, но мне лень с этим ебаться
+
+        time_calc = message_date - bear_date[0]
+
+        if time_calc < 240:
+            rnd = random.choice(range(bear_date[1]))
+            bear_date[1] -= 2
+
+            if rnd == 0:
+                await bot.send_sticker(
+                    chat_id=config.group_id,
+                    sticker='CAACAgIAAxkBAAECH0VgYjnrZnEhC9I3mjXeIlJZVf4osQACXAADDnr7CuShPCAcZWbPHgQ'
+                )
+                print(f"it's bear time\nprob was: {round(1 / (bear_date[1] + 3), 2)}\n")
+                bear_date[1] = 9
+
+        bear_date[0] = message_date
+
+
 # TODO: random bad apple video
 # TODO: random bad apple frame as avatar in tg
 # TODO: Add /help command for ls group only
