@@ -34,7 +34,17 @@ async def say_count(message: Message):
         await bot.send_message(text=f"/say было вызвано {says.get_say_count()} раз", chat_id=test_group_id)
 
 
+async def help(message: Message):
+    args = message.text
+
+    await message.bot.send_message(
+        text=f"/message - send message to test_group\n/c - return say's count\n/add - add paste to db",
+        chat_id=test_group_id,
+    )
+
+
 def setup(dp: Dispatcher):
     dp.register_message_handler(say_to_ls, commands=['message'])
     dp.register_message_handler(say_count, commands=['c'])
     dp.register_message_handler(add_paste, commands=['add'])
+    dp.register_message_handler(help, commands=['help'])
