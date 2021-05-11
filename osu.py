@@ -141,7 +141,7 @@ async def get_pp_for_score(
         print_status
 ) -> tuple[str, str, float]:
     expanded_beatmap_file = p.map(osu_file)
-    mods_calc = reduce(operator.or_, (getattr(pyttanko, f'MODS_{mod}') for mod in score['mods']),
+    mods_calc = reduce(operator.or_, (getattr(pyttanko, f'MODS_{mod}') for mod in score['mods'] if mod != 'PF' and mod != 'SD'),
                        pyttanko.MODS_NOMOD)
     stars = pyttanko.diff_calc().calc(expanded_beatmap_file, mods_calc)
 
