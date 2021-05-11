@@ -462,7 +462,15 @@ class Osu:
 
         map_url = beatmap['url']
 
-        highest_pp_play = print_pp_play(best_score[0], rank, accuracy, combo, score_time, map_url, True)
+        print_status = get_map_status(best_score[0])
+
+        _, _, starrate = await get_pp_for_score(await self.get_osu_file(beatmap['id']), best_score[0], print_status)
+
+        mods = ''.join(best_score[0]['mods'])
+        if mods == '':
+            mods = 'NM'
+
+        highest_pp_play = print_pp_play(best_score[0], rank, accuracy, combo, score_time, map_url, True, mods, starrate)
 
         rank_change = user_data['rank_history']['data'][-7] - user_data['rank_history']['data'][-1]
         if rank_change > 0:
@@ -537,7 +545,15 @@ class Osu:
             if i == 0:
                 map_pic_url = beatmap['beatmapset']['covers']['cover']
 
-            plays = print_pp_play(best_score[i], rank, accuracy, combo, score_time, map_url, False)
+            mods = ''.join(best_score[i]['mods'])
+            if mods == '':
+                mods = 'NM'
+
+            map_status = get_map_status(best_score[i])
+
+            _, _, starrate = await get_pp_for_score(await self.get_osu_file(best_score[i]['beatmap']['id']), best_score[i], map_status)
+
+            plays = print_pp_play(best_score[i], rank, accuracy, combo, score_time, map_url, False, mods, starrate)
             msg += f'{plays}\n\n'
         return msg, map_pic_url
 
