@@ -212,12 +212,21 @@ async def get_pp_for_score(
     return completed, pp, stars.total
 
 
-def print_pp_play(best_score, rank, accuracy, combo, score_time, url, get_more_info: bool) -> str:
-    # TODO: add starrate and mods
+def print_pp_play(
+        best_score,
+        rank,
+        accuracy,
+        combo,
+        score_time,
+        url,
+        get_more_info: bool,
+        mods,
+        starrate,
+) -> str:
     play = f'<a href="{url}"><b>{quote_html(best_score["beatmapset"]["title"])}</b> by ' \
            f'<b>{quote_html(best_score["beatmapset"]["artist"])} ' \
            f'[{quote_html(best_score["beatmap"]["version"])}]</b></a>\n' \
-           f'<b>{rank} {accuracy}{combo}</b>\n' \
+           f'<b>{rank} {accuracy}{combo} {mods} {round(starrate, 2)}★</b>\n' \
            f'<b>{round(best_score["pp"], 2)}pp</b>\n'
 
     if get_more_info:
