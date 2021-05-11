@@ -9,12 +9,14 @@ import emoji
 import random
 from datetime import datetime
 
+import osu_bot
 import tg_ls
 import test_group
 import database
 
-from osu import Osu, request_to_osu
+from osu import request_to_osu
 import config
+from osu_middleware import OsuMiddleware
 from simple_math import Says
 from paste_updater import PasteUpdater
 
@@ -25,7 +27,9 @@ dp = Dispatcher(bot)
 dp.middleware.setup(database.OsuDbMiddleware())
 
 
+async def on_startup():
     osu = await request_to_osu()
+    dp.middleware.setup(OsuMiddleware(osu))
 
     await bot.set_my_commands([
         BotCommand('recent', "Get user's recent score"),
@@ -35,22 +39,26 @@ dp.middleware.setup(database.OsuDbMiddleware())
     ])
 
 
-async def on_shutdown(_):
-    await osu.close()
+async def on_shutdown():
+    pass
 
 
 def register():
+    osu_bot.setup(dp)
     tg_ls.setup(dp)
     test_group.setup(dp)
 
 
 async def main():
     register()
-    await dp.start_polling()
-    #await executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)
+    await on_startup()
+    try:
+        await dp.skip_updates()
+        await dp.start_polling()
+    finally:
+        await on_shutdown()
+    # await executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)
 
 
 if __name__ == '__main__':
     run(main())
-
-
