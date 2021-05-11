@@ -1,15 +1,17 @@
 from datetime import datetime
+import random
 
 import config
 from paste_updater import PasteUpdater
 from simple_math import Says, math
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message
+from aiogram.types import Message, ContentTypes
 from config import users as ls
 from config import group_id, test_group_id
 
 says = Says()
 pastes = PasteUpdater()
+bear_date = [-1, 9]
 
 
 async def colon_check(message: Message, time: str):
@@ -32,19 +34,23 @@ async def empty_args():
         time = f'{datetime.now().hour + 1}:00'
     elif datetime.now().minute > 45:
         time = f'{datetime.now().hour + 1}:15'
-    place = 'Борщ.'
-    return time + '. ', place
+    place = 'Борщ'
+    return time, place
 
 
-async def one_arg(args: str, now: list[str], message: Message):
+async def one_arg(args: str, now: list[str], message: Message, multiple_args: bool):
+    if multiple_args:
+        time = ''
+        place = args
+        return time, place
     if args.split(' ')[0].isalpha() and args.split(' ')[0] not in now:
         time = ''
         place = args.split(' ')[0]
-        return time, place + '.'
+        return time, place
     else:
         time = args.split(' ')[0]
-        place = 'Борщ.'
-        time = right_time_check(time, message)
+        place = 'Борщ'
+        time = await right_time_check(time, message)
         return time, place
 
 
@@ -83,19 +89,20 @@ async def two_args(now: list[str], args: str, message: Message):
     if is_in_now or colon or is_arg_num:
         time, place = args.rsplit(' ', maxsplit=1)
         if not is_in_now:
-            time = right_time_check(time, message)
+            time = await right_time_check(time, message)
         return time, place
 
     is_in_now, colon, is_arg_num = split_checker(1, args, now)
 
     if is_in_now or colon or is_arg_num:
-        time, place = args.split(' ', maxsplit=1)
+        place, time = args.split(' ', maxsplit=1)
         if not is_in_now:
-            time = right_time_check(time, message)
+            time = await right_time_check(time, message)
         return time, place
 
-    await message.reply('Пошел нахуй дебила кусок')
-    raise ValueError("Не подошел ни один из шаблонов")
+    multiple_args = True
+    time, place = await one_arg(args, now, message, multiple_args)
+    return time, place
 
 
 async def get_time(message: Message, args: str) -> tuple[str, str]:
@@ -105,15 +112,15 @@ async def get_time(message: Message, args: str) -> tuple[str, str]:
         args = args.removeprefix(' ')
 
     if args == '':
-        time, place = empty_args()
+        time, place = await empty_args()
         return time, place
 
     if len(args.split(' ')) == 1:
-        time, place = one_arg(args, now, message)
+        time, place = await one_arg(args, now, message, False)
         return time, place
 
-    time, place = two_args(now, args, message)
-    return time, place + '.'
+    time, place = await two_args(now, args, message)
+    return time, place
 
 
 async def right_time_check(time: str, message: Message):
@@ -256,11 +263,13 @@ async def smart_poll(message: Message):
     if argslist[0] == '/кто':
         time, place = await get_time(args=args.removeprefix('/кто'), message=message)
         options = ['Я', 'Не я']
+        dot = '.'
 
         if time == '':
+            dot = ''
             if place == 'я.':
                 options = ['Пидорас', 'Педофил']
-        await bot.send_poll(chat_id=group_id, question=f'{time.capitalize()}{place.capitalize()} Кто.',
+        await bot.send_poll(chat_id=group_id, question=f'{time.capitalize()}{dot} {place.capitalize()}. Кто.',
                             options=options, is_anonymous=False)
         await bot.delete_message(chat_id=group_id, message_id=message.message_id)
 
@@ -303,7 +312,6 @@ async def bear(message: Message):
 
 
 # TODO: random bad apple video
-# TODO: random bad apple frame as avatar in tg
 # TODO: Add /help command for ls group only
 
 
