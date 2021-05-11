@@ -307,12 +307,13 @@ async def kto_format(_):
 
 
 def setup(dp: Dispatcher):
-    dp.register_message_handler(smart_poll, commands=['кто'])
-    dp.register_message_handler(delete_message, commands=['del'])
-    dp.register_message_handler(all, commands=['all'])
-    dp.register_message_handler(tmn, commands=['tmn'])
-    dp.register_message_handler(gamers, commands=['gamers'])
-    dp.register_message_handler(pasta, commands=['pasta'])
-    dp.register_message_handler(say, commands=['say'])
-    dp.register_message_handler(help, commands=['help'])
-    dp.register_message_handler(kto_format, commands=['format'])
+    dp.register_message_handler(smart_poll, commands=['кто'], chat_id=config.group_id)
+    dp.register_message_handler(delete_message, commands=['del'], chat_id=config.group_id)
+    dp.register_message_handler(all, commands=['all'], chat_id=config.group_id)
+    dp.register_message_handler(tmn, commands=['tmn'], chat_id=config.group_id)
+    dp.register_message_handler(gamers, commands=['gamers'], chat_id=config.group_id)
+    dp.register_message_handler(pasta, commands=['pasta'], chat_id=config.group_id)
+    dp.register_message_handler(say, commands=['say'], chat_id=config.group_id)
+    dp.register_message_handler(pomogite, commands=['pomogite'], chat_id=config.group_id)
+    dp.register_message_handler(kto_format, commands=['format'], chat_id=config.group_id)
+    dp.register_message_handler(bear, content_types=ContentTypes.STICKER, chat_id=config.group_id)
