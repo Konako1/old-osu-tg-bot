@@ -229,6 +229,15 @@ def print_pp_play(best_score, rank, accuracy, combo, score_time, url, get_more_i
     return play
 
 
+def get_map_status(
+        score
+):
+    if score['beatmap']['status'] in ('graveyard', 'pending', 'wip'):
+        return 'Unranked'
+    return score['beatmap']['status'].capitalize()
+
+
+
 # TODO: refactor this shit
 class Osu:
     def __init__(self, token: str):
@@ -363,10 +372,7 @@ class Osu:
 
         beatmap = await self.get_beatmap(score['beatmap']['id'])
 
-        if score['beatmap']['status'] in ('graveyard', 'pending', 'wip'):
-            print_status = 'Unranked'
-        else:
-            print_status = score['beatmap']['status'].capitalize()
+        print_status = get_map_status(score)
 
         misscount = ''
         if score['statistics']['count_miss'] != 0:
