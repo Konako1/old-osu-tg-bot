@@ -2,12 +2,6 @@ from asyncio import run
 
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message, BotCommand, ContentTypes
-from aiogram.utils.exceptions import WrongFileIdentifier
-from aiogram.utils.markdown import quote_html
-from httpx import HTTPStatusError, ReadTimeout
-import emoji
-import random
-from datetime import datetime
 
 import osu_bot
 import tg_ls
@@ -17,10 +11,8 @@ import database
 from osu import request_to_osu
 import config
 from osu_middleware import OsuMiddleware
-from simple_math import Says
 from paste_updater import PasteUpdater
 
-says = Says()
 pastes = PasteUpdater()
 bot = Bot(config.TG_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
