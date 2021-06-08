@@ -4,8 +4,6 @@ from aiogram.utils.exceptions import WrongFileIdentifier
 from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
 import emoji
-import random
-from datetime import datetime
 
 import database
 
@@ -68,7 +66,7 @@ async def recent(
 ):
     args = message.get_args()
     user_id = message.from_user.id
-    osu_id = await cache_check(message, args, db, user_id, message.from_user.id)
+    osu_id = await cache_check(message, args, db, user_id, osu)
 
     if osu_id is None:
         await message.reply('You forgot to write a nickname')
@@ -119,7 +117,7 @@ async def profile(
     bot = Bot.get_current()
     args = message.get_args()
     user_id = message.from_user.id
-    osu_id = await cache_check(message, args, db, user_id, message.from_user.id)
+    osu_id = await cache_check(message, args, db, user_id, osu)
 
     if osu_id is None:
         await message.reply('You forgot to write a nickname')
@@ -180,7 +178,7 @@ async def best_scores(
     bot = Bot.get_current()
     args = message.get_args()
     user_id = message.from_user.id
-    osu_id = await cache_check(message, args, db, user_id, message.from_user.id)
+    osu_id = await cache_check(message, args, db, user_id, osu)
     if osu_id is None:
         await message.reply('You forgot to write a nickname!')
         return
