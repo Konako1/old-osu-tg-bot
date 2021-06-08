@@ -118,7 +118,7 @@ def get_deducted_time(
             time[1] = time[1][1]
         if time[1] != '01':
             if time[1] == '0':
-                time = 'less then a minute ago'
+                time = 'less than a minute ago'
             else:
                 time = f'{time[1]} minutes ago'
         else:
