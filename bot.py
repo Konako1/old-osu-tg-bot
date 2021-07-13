@@ -1,19 +1,15 @@
 from asyncio import run
 
-from aiogram import Bot, Dispatcher, executor
-from aiogram.types import Message, BotCommand, ContentTypes
+from aiogram import Bot, Dispatcher
+from aiogram.types import BotCommand
 
 import osu_bot
-import tg_ls
-import test_group
 import database
 
 from osu import request_to_osu
 import config
 from osu_middleware import OsuMiddleware
-from paste_updater import PasteUpdater
 
-pastes = PasteUpdater()
 bot = Bot(config.TG_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 dp.middleware.setup(database.OsuDbMiddleware())
@@ -37,8 +33,6 @@ async def on_shutdown():
 
 def register():
     osu_bot.setup(dp)
-    tg_ls.setup(dp)
-    test_group.setup(dp)
 
 
 async def main():
