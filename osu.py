@@ -246,7 +246,6 @@ def get_map_status(
     return score['beatmap']['status'].capitalize()
 
 
-
 # TODO: refactor this shit
 class Osu:
     def __init__(self, token: str):
@@ -601,6 +600,3 @@ async def request_to_osu() -> Osu:
     osu = Osu('')
     await osu.update_token()
     return osu
-
-# if __name__ == '__main__':
-#     run(main())
