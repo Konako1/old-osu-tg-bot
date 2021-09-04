@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message, ContentTypes
+from aiogram.types import Message, ContentTypes, InputFile
 from aiogram.utils.exceptions import WrongFileIdentifier
 from aiogram.utils.markdown import quote_html
 from httpx import HTTPStatusError, ReadTimeout
@@ -55,7 +55,7 @@ async def cache_check(
 
 async def start(message: Message):
     await message.reply(
-        "Hello, I'm an osu! bot that shows player's recent score, profile "
+        "Hello, I'm an osu! bot that shows player's recent score, profile, top5 best plays "
         "and maybe something else in the future.")
 
 
@@ -75,7 +75,7 @@ async def recent(
     await message.bot.send_chat_action(message.chat.id, 'upload_voice')
 
     try:
-        result = await osu.recent(osu_id)
+        result = await osu.recent(osu_id, message)
         await info_reply(f'Recent score searched for: {result.player} #{result.user_rank}')
     except ReadTimeout:
         await message.reply('Bancho is dead')
@@ -104,8 +104,9 @@ async def recent(
             reply_text,
         )
     except WrongFileIdentifier:
-        await message.reply(
-            f'no bg for you\n\n{reply_text}'
+        await message.reply_photo(
+            InputFile(config.path + 'osu_bg.png'),
+            reply_text,
         )
 
 
@@ -165,8 +166,9 @@ async def profile(
             message_text
         )
     except WrongFileIdentifier:
-        await message.reply(
-            message_text
+        await message.reply_photo(
+            InputFile(config.path + 'default_user_photo.png'),
+            message_text,
         )
 
 
@@ -203,9 +205,15 @@ async def best_scores(
     message_text = f'5 best scores for: <a href="{url}">{nickname}</a> #{rank}\n\n{result}'
 
     try:
-        await message.reply_photo(photo=map_pic, caption=message_text)
+        await message.reply_photo(
+            photo=map_pic,
+            caption=message_text,
+        )
     except WrongFileIdentifier:
-        await message.reply(result, disable_web_page_preview=True)
+        await message.reply_photo(
+            photo=InputFile(config.path + 'osu_bg.png'),
+            caption=message_text,
+        )
 
 
 async def set_osu_nickname(
@@ -216,7 +224,7 @@ async def set_osu_nickname(
     args = message.get_args()
     tg_id = message.from_user.id
     if not args:
-        await message.reply('You dumb')
+        await message.reply('Please write a nickname.')
         return
     user_id = await osu.get_user_id(args)
     await db.set_user(tg_id, user_id)
