@@ -5,13 +5,14 @@ from aiogram.utils.markdown import quote_html
 
 import pyttanko as pyttanko
 from dataclasses import dataclass
-from datetime import datetime
 from pprint import pprint
 from typing import Any, Iterator
 from asyncio import sleep, create_task
+from aiogram.types import Message
 
 import httpx
 from dateutil import parser
+from datetime import datetime, timedelta
 
 import config
 
@@ -105,12 +106,12 @@ def get_score_rank(
 
 
 def get_deducted_time(
-        score
+        score,
+        message_date: datetime
 ):
     score_time = parser.parse(score['created_at'])
     score_time = score_time.replace(tzinfo=None)
-    date_time_now = datetime.utcnow()
-    time_has_passed = date_time_now - score_time
+    time_has_passed = message_date - score_time - timedelta(hours=5)
     time = str(time_has_passed).split(':')
 
     if time[0] == '0':
@@ -366,6 +367,7 @@ class Osu:
     async def recent(
             self,
             user_id: int,
+            message: Message,
     ) -> Score:
         user_data = await self.get_user_data(user_id)
 
@@ -376,7 +378,7 @@ class Osu:
         except IndexError:
             raise IndexError('User is quit w (no recent scores for past 24 hours)') from None
 
-        result_time = get_deducted_time(score)
+        result_time = get_deducted_time(score, message.date)
 
         beatmap = await self.get_beatmap(score['beatmap']['id'])
 
