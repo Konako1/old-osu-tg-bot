@@ -3,7 +3,7 @@ import operator
 from functools import reduce
 from aiogram.utils.markdown import quote_html
 
-import pyttanko as pyttanko
+import pyttanko
 from dataclasses import dataclass
 from pprint import pprint
 from typing import Any, Iterator

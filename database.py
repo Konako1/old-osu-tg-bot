@@ -2,10 +2,11 @@ from typing import Optional
 
 import aiosqlite
 from aiogram.dispatcher.middlewares import BaseMiddleware
+import config
 
 
 class OsuDb:
-    def __init__(self, path: str = 'C:/Users/konak/Desktop/a/Хацкерство/python/osuTest/osu.db'):
+    def __init__(self, path: str = config.ASSET_PATH / 'osu.db'):
         self._conn = aiosqlite.connect(path)
 
     async def connect(self):
