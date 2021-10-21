@@ -257,8 +257,8 @@ class Osu:
         if delay:
             await sleep(delay)
         resp = await self._session.post('https://osu.ppy.sh/oauth/token', json={
-            'client_id': config.id,
-            'client_secret': config.secret,
+            'client_id': config.CLIENT_ID,
+            'client_secret': config.CLIENT_SECRET,
             'grant_type': 'client_credentials',
             'scope': 'public',
         })

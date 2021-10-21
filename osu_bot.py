@@ -105,7 +105,7 @@ async def recent(
         )
     except WrongFileIdentifier:
         await message.reply_photo(
-            InputFile(config.path + 'osu_bg.png'),
+            InputFile(config.ASSET_PATH / 'osu_bg.png'),
             reply_text,
         )
 
@@ -167,7 +167,7 @@ async def profile(
         )
     except WrongFileIdentifier:
         await message.reply_photo(
-            InputFile(config.path + 'default_user_photo.png'),
+            InputFile(config.ASSET_PATH / 'default_user_photo.png'),
             message_text,
         )
 
@@ -211,7 +211,7 @@ async def best_scores(
         )
     except WrongFileIdentifier:
         await message.reply_photo(
-            photo=InputFile(config.path + 'osu_bg.png'),
+            photo=InputFile(config.ASSET_PATH / 'osu_bg.png'),
             caption=message_text,
         )
 
@@ -236,7 +236,7 @@ async def info_reply(
         text: str,
 ):
     bot = Bot.get_current()
-    await bot.send_message(config.test_group_id, text=text)
+    await bot.send_message(config.REPORT_CHAT_ID, text=text)
 
 
 async def exception_reply(message: Message, text: str):
