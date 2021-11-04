@@ -111,7 +111,7 @@ def get_deducted_time(
 ):
     score_time = parser.parse(score['created_at'])
     score_time = score_time.replace(tzinfo=None)
-    time_has_passed = message_date - score_time - timedelta(hours=5)
+    time_has_passed = message_date - score_time
     time = str(time_has_passed).split(':')
 
     if time[0] == '0':
